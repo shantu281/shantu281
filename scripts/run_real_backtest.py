@@ -17,6 +17,8 @@ from deltabot.data import load_candles  # noqa: E402
 from deltabot.real_backtest import RealConfig, run_real_backtest  # noqa: E402
 from deltabot.strategies import default_strategies  # noqa: E402
 
+LOT_BTC = 0.001  # contract_value of Delta India BTC options (checked on the live API, 17 Oct 2026)
+
 
 def main():
     p = argparse.ArgumentParser()
@@ -24,14 +26,14 @@ def main():
     p.add_argument("--start", default=None)
     p.add_argument("--end", default=None)
     p.add_argument("--strategies", nargs="*", default=None)
-    p.add_argument("--qty", type=float, default=0.1, help="BTC per leg")
+    p.add_argument("--lots", type=int, default=100, help="lots per leg (Delta BTC option lot = 0.001 BTC)")
     p.add_argument("--hours-before", type=float, default=24.0, help="enter this many hours before expiry")
     p.add_argument("--out", default="results")
     a = p.parse_args()
 
     data = Path(a.data)
     index = load_candles(data / "BTC_index_5m.csv")
-    cfg = RealConfig(qty_btc=a.qty, hours_before=a.hours_before)
+    cfg = RealConfig(qty_btc=a.lots * LOT_BTC, hours_before=a.hours_before)
     strategies = [s for s in default_strategies() if not a.strategies or s.name in a.strategies]
     out = Path(a.out)
     out.mkdir(exist_ok=True)
@@ -45,7 +47,7 @@ def main():
     all_trades = pd.concat(frames, ignore_index=True)
     pd.set_option("display.width", 200)
     pd.set_option("display.max_columns", 20)
-    print(f"\n=== real Delta prices, entry {a.hours_before}h before expiry, {a.qty} BTC per leg, USD ===")
+    print(f"\n=== real Delta prices, entry {a.hours_before}h before expiry, {a.lots} lots ({a.lots * LOT_BTC:g} BTC) per leg, USD ===")
     print(pd.DataFrame(rows).set_index("strategy").to_string())
     print("\nmonth by month:")
     print(monthly(all_trades).to_string())
