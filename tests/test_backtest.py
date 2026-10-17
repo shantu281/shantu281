@@ -47,3 +47,12 @@ def test_costs_reduce_pnl():
     net = summarise(trades_frame(run_backtest(candles, ShortStraddle("x"), BacktestConfig())))
     assert net["net_pnl"] < gross["net_pnl"]
     assert net["costs"] > 0
+
+
+def test_market_structure_reads_swings():
+    from deltabot.strategies import market_structure
+    zigzag = np.tile(np.r_[np.linspace(0, 10, 6), np.linspace(10, 0, 6)[1:-1]], 8)
+    drift = np.arange(len(zigzag)) * 0.3
+    assert market_structure(pd.Series(100 + zigzag + drift)) == "up"
+    assert market_structure(pd.Series(100 + zigzag - drift)) == "down"
+    assert market_structure(pd.Series(100 + zigzag)) == "range"

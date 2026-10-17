@@ -97,6 +97,45 @@ class TrendBuy(Strategy):
         k = strike_for_delta(kind, ctx.spot, d, ctx.t_years, ctx.vol, ctx.strike_step)
         return [Leg(kind, k, +1)]
 
+def market_structure(closes: pd.Series, width: int = 3, lookback: int = 72) -> str:
+    """'up' (higher highs and higher lows), 'down' (lower highs and lower lows) or 'range'.
+
+    Swing points are closes that are the highest/lowest of the `width` bars on each side,
+    found in the last `lookback` bars. Only confirmed swings count (width bars after them).
+    """
+    c = closes.iloc[-lookback:].to_numpy()
+    highs, lows = [], []
+    for i in range(width, len(c) - width):
+        win = c[i - width: i + width + 1]
+        if c[i] == win.max():
+            highs.append(c[i])
+        elif c[i] == win.min():
+            lows.append(c[i])
+    if len(highs) < 2 or len(lows) < 2:
+        return "range"
+    if highs[-1] > highs[-2] and lows[-1] > lows[-2]:
+        return "up"
+    if highs[-1] < highs[-2] and lows[-1] < lows[-2]:
+        return "down"
+    return "range"
+
+
+class StructureSeller(Strategy):
+    """Sell at the money by market structure: put in an uptrend, call in a downtrend, straddle in a range.
+
+    params["trend"] = "skip" sells the straddle in a range only and stays out of trends.
+    """
+
+    def legs(self, ctx):
+        structure = market_structure(ctx.history["close"], self.params.get("width", 3),
+                                     self.params.get("lookback", 72))
+        k = round_strike(ctx.spot, ctx.strike_step)
+        if structure == "range":
+            return [Leg("call", k, -1), Leg("put", k, -1)]
+        if self.params.get("trend") == "skip":
+            return []
+        return [Leg("put" if structure == "up" else "call", k, -1)]
+
 
 def default_strategies() -> list[Strategy]:
     """The starting set to compare. Tune or add variants here."""
@@ -109,4 +148,6 @@ def default_strategies() -> list[Strategy]:
                    params={"short_delta": 0.20, "wing_delta": 0.05}),
         LongStraddle("long_straddle", stop_mult=0.5, take_profit=1.0),
         TrendBuy("trend_buy_d40", stop_mult=0.5, take_profit=1.5, params={"delta": 0.40}),
+        StructureSeller("structure_sell"),
+        StructureSeller("structure_range_only", params={"trend": "skip"}),
     ]
