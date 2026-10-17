@@ -31,11 +31,16 @@ def main():
 
     data = Path(a.data)
     start = pd.Timestamp(a.start, tz="UTC")
-    end = pd.Timestamp(a.end, tz="UTC") if a.end else pd.Timestamp.now(tz="UTC").floor("D")
+    # --end is inclusive: its 12:00 UTC expiry counts
+    end = (pd.Timestamp(a.end, tz="UTC") + pd.Timedelta(days=1)) if a.end else pd.Timestamp.now(tz="UTC")
     client = DeltaClient()
 
     # 1) BTC index, 5-minute (used for spot, strike choice and settlement)
     index_path = data / "BTC_index_5m.csv"
+    if index_path.exists():
+        saved = load_candles(index_path).index
+        if saved.min() > start - pd.Timedelta(days=2) or saved.max() < end - pd.Timedelta(hours=12):
+            index_path.unlink()  # saved index doesn't cover this range: fetch it again
     if not index_path.exists():
         print("downloading BTC index candles...")
         for sym in (".DEXBTUSD", "BTCUSD"):
@@ -53,7 +58,7 @@ def main():
     # 2) list of all BTC options
     products_path = data / "btc_option_products.csv"
     if not products_path.exists():
-        print("listing BTC options (takes a minute or two)...")
+        print("listing BTC options (takes about 10 minutes)...")
         fetch_option_products(client).to_csv(products_path, index=False)
     products = pd.read_csv(products_path, parse_dates=["settlement_time"])
     products["settlement_time"] = pd.to_datetime(products["settlement_time"], utc=True)
@@ -61,7 +66,7 @@ def main():
     # 3) one chain file per daily 12:00 UTC expiry
     out_dir = data / "options"
     expiries = sorted(t for t in products["settlement_time"].dropna().unique()
-                      if t.hour == 12 and t.minute == 0 and start <= t <= end)
+                      if t.hour == 12 and t.minute == 0 and start <= t < end)
     print(f"{len(expiries)} expiries from {start.date()} to {end.date()}")
     for n, expiry in enumerate(expiries, 1):
         entry = expiry - pd.Timedelta(hours=26)

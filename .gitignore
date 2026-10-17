@@ -5,3 +5,4 @@ __pycache__/
 data/*.csv
 results/
 .pytest_cache/
+data/options/

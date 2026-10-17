@@ -31,7 +31,7 @@ def fetch_option_products(client: DeltaClient, underlying: str = "BTC") -> pd.Da
     """All expired and live options for `underlying` with their settlement time."""
     rows = []
     for state in ("expired", "live"):
-        for p in client.get_products("call_options,put_options", states=state):
+        for p in client.get_products("call_options,put_options", states=state, underlying=underlying):
             if f"-{underlying}-" not in p["symbol"]:
                 continue
             kind, _, strike, _ = parse_symbol(p["symbol"])

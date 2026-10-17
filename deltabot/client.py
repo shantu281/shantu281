@@ -76,7 +76,7 @@ class DeltaClient:
     # ---- public market data ---------------------------------------------
 
     def get_products(self, contract_types: str | None = None, states: str | None = None,
-                     page_size: int = 500) -> list[dict]:
+                     underlying: str | None = None, page_size: int = 500) -> list[dict]:
         """All products, following pagination. contract_types e.g. 'call_options,put_options'."""
         out, after = [], None
         while True:
@@ -85,6 +85,8 @@ class DeltaClient:
                 params["contract_types"] = contract_types
             if states:
                 params["states"] = states
+            if underlying:
+                params["underlying_asset_symbols"] = underlying
             if after:
                 params["after"] = after
             resp = self.session.get(self.base_url + "/v2/products", params=params, timeout=self.timeout)
