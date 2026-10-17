@@ -60,7 +60,7 @@ For each implied-vol assumption, the script prints a summary per strategy: net P
   - Always compare strategies across several `iv_mult` values.
   - Next step: check `iv_mult` against real Delta option prices.
 - **Stops and targets:** the engine checks them on every bar using the bar's high and low. If both hit in the same bar, it assumes the stop came first. A gap through the stop fills at the bar's open.
-- **Costs:** 0.03% of notional per leg, capped at 3.5% of the premium, plus 18% GST. Slippage is 2% of the premium, with a minimum of $5 per BTC. **These need checking against Delta India's current fee schedule** (`BacktestConfig`).
+- **Costs:** 0.010% of notional per leg, capped at 3.5% of the premium, plus 18% GST; out-of-the-money legs settle free (Delta India fee page, checked 18 Oct 2026). Slippage of 2% of the premium, with a minimum of $5 per BTC, is still a guess (`BacktestConfig`).
 - **Settlement:** expiry settles on the close of the last candle before expiry. Delta settles on a 30-minute average of the index.
 
 ## Layout

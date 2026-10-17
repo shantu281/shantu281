@@ -28,12 +28,12 @@ class BacktestConfig:
     vol_lookback_days: int = 7
     iv_mult: float = 1.0             # implied vol = realised vol x iv_mult
     min_vol: float = 0.20
-    # costs (verify against Delta India's current fee schedule)
-    fee_rate: float = 0.0003         # fraction of underlying notional per leg trade
+    # costs: Delta India option fees (user-checked on delta.exchange, 18 Oct 2026); OTM legs settle free
+    fee_rate: float = 0.0001         # fraction of underlying notional per leg trade
     fee_cap: float = 0.035           # ... capped at this fraction of the premium
     gst: float = 0.18                # GST on fees
     settlement_fee: bool = True      # charge the fee formula on ITM legs at expiry
-    slippage_pct: float = 0.02       # fraction of option premium lost per leg trade
+    slippage_pct: float = 0.02       # fraction of option premium lost per leg trade (a guess, not checked)
     min_slippage: float = 5.0        # USD per BTC per leg trade (half the spread on cheap options)
 
 
