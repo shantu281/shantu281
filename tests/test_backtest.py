@@ -71,3 +71,15 @@ def test_move_adaptive_seller_widens_with_movement():
         return call - put
 
     assert gap(wild) > gap(quiet) >= 0
+
+
+def test_gmma_state_and_option_side():
+    from deltabot.strategies import EntryContext, GmmaOptionSeller, gmma_state
+    rising = pd.Series(np.linspace(60_000, 80_000, 300))
+    assert gmma_state(rising) == "up"
+    assert gmma_state(rising[::-1].reset_index(drop=True)) == "down"
+    times = pd.date_range("2026-01-01", periods=300 * 4, freq="1h", tz="UTC")
+    hist = pd.DataFrame({"close": np.linspace(60_000, 80_000, len(times))}, index=times)
+    ctx = EntryContext(times[-1] + pd.Timedelta(hours=1), 80_000, 2 / (365 * 24), 0.3, hist, 100)
+    (leg,) = GmmaOptionSeller("g").legs(ctx)
+    assert (leg.kind, leg.side) == ("put", -1)

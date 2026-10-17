@@ -158,6 +158,47 @@ class MoveAdaptiveSeller(Strategy):
         return [Leg("call", round_strike(center + width, ctx.strike_step), -1),
                 Leg("put", round_strike(center - width, ctx.strike_step), -1)]
 
+GMMA_SHORT = (3, 5, 8, 10, 12, 15)
+GMMA_LONG = (30, 35, 40, 45, 50, 60)
+
+
+def gmma_state(closes: pd.Series) -> str:
+    """'up' when every short-group EMA is above every long-group EMA, 'down' when all below, else 'none'."""
+    short = [closes.ewm(span=n, adjust=False).mean().iloc[-1] for n in GMMA_SHORT]
+    long_ = [closes.ewm(span=n, adjust=False).mean().iloc[-1] for n in GMMA_LONG]
+    if min(short) > max(long_):
+        return "up"
+    if max(short) < min(long_):
+        return "down"
+    return "none"
+
+
+class GmmaOptionSeller(Strategy):
+    """Sell options by the GMMA ribbon on completed H4 bars: a put when it points up, a call when down.
+
+    params: "width" places the leg width x recent move out of the money (see MoveAdaptiveSeller),
+    "none" = "skip" (default) or "straddle" for when the ribbons are tangled, "sides" = "both" or "put".
+    """
+
+    def legs(self, ctx):
+        hourly = ctx.history["close"]
+        h4 = hourly.resample("4h").last()
+        h4 = h4[h4.index + pd.Timedelta(hours=4) <= ctx.time].dropna()  # completed bars only
+        if len(h4) < 180:  # let the 60-EMA settle
+            return []
+        state = gmma_state(h4)
+        h = max(1, round(ctx.t_years * SECONDS_PER_YEAR / 3600))
+        move = hourly.iloc[-7 * 24:].diff(h).abs().mean()
+        off = self.params.get("width", 0.0) * move
+        if state == "up":
+            return [Leg("put", round_strike(ctx.spot - off, ctx.strike_step), -1)]
+        if state == "down" and self.params.get("sides", "both") == "both":
+            return [Leg("call", round_strike(ctx.spot + off, ctx.strike_step), -1)]
+        if state == "none" and self.params.get("none") == "straddle":
+            k = round_strike(ctx.spot, ctx.strike_step)
+            return [Leg("call", k, -1), Leg("put", k, -1)]
+        return []
+
 
 def default_strategies() -> list[Strategy]:
     """The starting set to compare. Tune or add variants here."""
@@ -177,4 +218,8 @@ def default_strategies() -> list[Strategy]:
         MoveAdaptiveSeller("move_strangle_1", params={"width": 1.0}),
         MoveAdaptiveSeller("move_shift_follow", params={"shift": 0.5}),
         MoveAdaptiveSeller("move_shift_revert", params={"shift": -0.5}),
+        GmmaOptionSeller("gmma_sell"),
+        GmmaOptionSeller("gmma_sell_straddle", params={"none": "straddle"}),
+        GmmaOptionSeller("gmma_sell_otm", params={"width": 0.5}),
+        GmmaOptionSeller("gmma_put_only", params={"sides": "put"}),
     ]
