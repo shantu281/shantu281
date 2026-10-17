@@ -31,7 +31,7 @@ python scripts/run_real_backtest.py                                      # compa
 ```
 
 - The download saves the BTC index, the list of options, and one file per daily expiry, holding every strike within ±5% of spot (`data/options/YYYY-MM-DD.csv.gz`). It uses mark prices by default; pass `--price trade` for traded prices.
-- The backtest reads the at-the-money implied vol from the real prices and picks strikes by delta. It values each leg from its own candles, checks stops against the worst high/low combination in each bar, and settles on the 30-minute average of the index.
+- The backtest reads the at-the-money implied vol from the real prices and picks strikes by delta. It values each leg from its own candles, checks stops against the worst high/low combination in each bar, checks profit targets only on the bar close, and settles on the 30-minute average of the index.
 - Mark price is not a fill price, so the spread cost (`slippage_pct`, `min_slippage`) still matters.
 
 ## Model-priced backtest (fallback)

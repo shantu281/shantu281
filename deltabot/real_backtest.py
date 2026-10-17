@@ -4,7 +4,9 @@ Each leg is valued from its own 5-minute candles (mark or traded price). Strike
 selection reuses the strategies: the at-the-money implied vol is backed out of
 the real prices, the strategy picks strikes by delta, and each strike is snapped
 to the nearest listed strike that has data. Stops are checked against the worst
-combination of leg highs/lows in each bar, so they are conservative. Expiry
+combination of leg highs/lows in each bar, so they are conservative. Targets
+are checked on the bar close only: the legs' best prices in a bar rarely happen
+at the same moment, so their sum is not a price you could have exited at. Expiry
 settles on the average of the index over the last 30 minutes, like Delta.
 """
 
@@ -106,12 +108,12 @@ def run_real_backtest(index: pd.DataFrame, chains_dir: str | Path, strategy: Str
             cols = [a[long_field if l.side > 0 else short_field].to_numpy() for l, a in zip(legs, aligned)]
             return (sides[:, None] * np.vstack(cols)).sum(axis=0) - v0
 
-        pnl_open, worst, best = value("open", "open"), value("low", "high"), value("high", "low")
+        pnl_open, worst, reachable = value("open", "open"), value("low", "high"), value("close", "close")
         exit_reason, exit_time, exit_pnl, exit_prices = "expiry", expiry, None, None
         for i, ts in enumerate(times):
             if stop is not None and (pnl_open[i] <= stop or worst[i] <= stop):
                 exit_reason, exit_pnl = "stop", min(pnl_open[i], stop)
-            elif target is not None and (pnl_open[i] >= target or best[i] >= target):
+            elif target is not None and (pnl_open[i] >= target or reachable[i] >= target):
                 exit_reason, exit_pnl = "target", max(pnl_open[i], target)
             else:
                 continue

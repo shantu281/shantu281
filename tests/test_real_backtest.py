@@ -87,3 +87,18 @@ def test_multi_leg_strategies_pick_listed_strikes(setup):
         for t in trades:
             assert all(l.strike % 500 == 0 for l in t.legs)
             assert t.costs > 0
+
+
+def test_target_needs_a_real_close_not_mixed_intrabar_extremes(setup, tmp_path):
+    # Each leg's low can come at a different moment in the bar, so the sum of the lows of a short
+    # straddle may never have been tradeable. Spiking every low must not change target exits.
+    index, d = setup
+    for f in d.glob("*.csv.gz"):
+        df = pd.read_csv(f, compression="gzip")
+        df["low"] = 0.01
+        df.to_csv(tmp_path / f.name, index=False, compression="gzip")
+    strat = ShortStraddle("ss", take_profit=0.3)
+    base = run_real_backtest(index, d, strat, zero_cost())
+    spiked = run_real_backtest(index, tmp_path, strat, zero_cost())
+    assert [(t.exit_reason, t.exit_time, t.gross_pnl) for t in base] == \
+           [(t.exit_reason, t.exit_time, t.gross_pnl) for t in spiked]
