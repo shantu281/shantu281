@@ -56,3 +56,18 @@ def test_market_structure_reads_swings():
     assert market_structure(pd.Series(100 + zigzag + drift)) == "up"
     assert market_structure(pd.Series(100 + zigzag - drift)) == "down"
     assert market_structure(pd.Series(100 + zigzag)) == "range"
+
+
+def test_move_adaptive_seller_widens_with_movement():
+    from deltabot.strategies import EntryContext, MoveAdaptiveSeller
+    times = pd.date_range("2026-01-01", periods=200, freq="1h", tz="UTC")
+    quiet = pd.DataFrame({"close": 80_000 + 50 * np.sin(np.arange(200))}, index=times)
+    wild = pd.DataFrame({"close": 80_000 + 800 * np.sin(np.arange(200))}, index=times)
+    strat = MoveAdaptiveSeller("m", params={"width": 1.0})
+
+    def gap(hist):
+        legs = strat.legs(EntryContext(times[-1], 80_000, 2 / (365 * 24), 0.3, hist, 100))
+        call, put = (l.strike for l in legs)
+        return call - put
+
+    assert gap(wild) > gap(quiet) >= 0

@@ -14,7 +14,7 @@ from dataclasses import dataclass, field
 
 import pandas as pd
 
-from .pricing import round_strike, strike_for_delta
+from .pricing import SECONDS_PER_YEAR, round_strike, strike_for_delta
 
 
 @dataclass(frozen=True)
@@ -136,6 +136,28 @@ class StructureSeller(Strategy):
             return []
         return [Leg("put" if structure == "up" else "call", k, -1)]
 
+class MoveAdaptiveSeller(Strategy):
+    """Short call and put placed by BTC's recent movement (hourly closes before entry).
+
+    `move` is the average absolute price change over the time left to expiry, measured
+    over the last `days`. The call is sold at spot + width x move and the put at
+    spot - width x move (width 0 = straddle). `shift` moves both strikes by that
+    fraction of the last move over the same horizon: > 0 bets it continues, < 0 that
+    it reverses.
+    """
+
+    def legs(self, ctx):
+        closes = ctx.history["close"]
+        h = max(1, round(ctx.t_years * SECONDS_PER_YEAR / 3600))
+        recent = closes.iloc[-self.params.get("days", 7) * 24:]
+        if len(recent) <= h:
+            return []
+        move = recent.diff(h).abs().mean()
+        center = ctx.spot + self.params.get("shift", 0.0) * (closes.iloc[-1] - closes.iloc[-1 - h])
+        width = self.params.get("width", 0.0) * move
+        return [Leg("call", round_strike(center + width, ctx.strike_step), -1),
+                Leg("put", round_strike(center - width, ctx.strike_step), -1)]
+
 
 def default_strategies() -> list[Strategy]:
     """The starting set to compare. Tune or add variants here."""
@@ -150,4 +172,9 @@ def default_strategies() -> list[Strategy]:
         TrendBuy("trend_buy_d40", stop_mult=0.5, take_profit=1.5, params={"delta": 0.40}),
         StructureSeller("structure_sell"),
         StructureSeller("structure_range_only", params={"trend": "skip"}),
+        MoveAdaptiveSeller("move_strangle_025", params={"width": 0.25}),
+        MoveAdaptiveSeller("move_strangle_05", params={"width": 0.5}),
+        MoveAdaptiveSeller("move_strangle_1", params={"width": 1.0}),
+        MoveAdaptiveSeller("move_shift_follow", params={"shift": 0.5}),
+        MoveAdaptiveSeller("move_shift_revert", params={"shift": -0.5}),
     ]

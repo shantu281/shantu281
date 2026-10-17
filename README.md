@@ -10,7 +10,7 @@ The plan is to backtest several BTC option strategies, pick the one that holds u
 | Pricing (`deltabot/pricing.py`) | Black-Scholes price, delta and strike-by-delta; tested |
 | Real-price backtest (`deltabot/real_backtest.py`, `deltabot/option_data.py`) | Uses Delta's own 5-minute option candles; tested on synthetic chains, not yet run on real data |
 | Model-priced backtest (`deltabot/backtest.py`) | Black-Scholes fallback; tested on synthetic data |
-| Candidate strategies (`deltabot/strategies.py`) | Short straddle, short strangle (20Δ / 10Δ), iron condor, long straddle, trend-following option buying, market-structure seller (put in uptrend, call in downtrend, straddle in range) |
+| Candidate strategies (`deltabot/strategies.py`) | Short straddle, short strangle (20Δ / 10Δ), iron condor, long straddle, trend-following option buying, market-structure seller (put in uptrend, call in downtrend, straddle in range), movement-spaced strangle (strikes set by recent BTC moves) |
 | Paper and live runner | Not started; it comes after a strategy is chosen |
 
 ## Setup
