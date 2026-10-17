@@ -94,5 +94,11 @@ def load_chain(path: str | Path) -> dict[tuple[str, float], pd.DataFrame]:
     chain = {}
     for sym, g in df.groupby("symbol"):
         kind, _, strike, _ = parse_symbol(sym)
-        chain[(kind, strike)] = g.set_index("time")[["open", "high", "low", "close"]].astype(float).sort_index()
+        g = g.set_index("time")[["open", "high", "low", "close"]].astype(float).sort_index()
+        # a newly listed contract's first candle opens at a placeholder (e.g. 0.1) before the real price
+        first = g.iloc[0]
+        if not 0.5 <= first["open"] / first["close"] <= 2:
+            g = g.iloc[1:]
+        if not g.empty:
+            chain[(kind, strike)] = g
     return chain

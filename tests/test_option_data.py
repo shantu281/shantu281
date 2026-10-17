@@ -31,3 +31,17 @@ def test_download_expiry_band_mark_prefix_and_resume(tmp_path):
     client.calls.clear()
     download_expiry(client, products, expiry, 95_000, tmp_path, band=0.05, workers=1)
     assert client.calls == []  # already downloaded: skipped
+
+
+def test_load_chain_drops_placeholder_listing_candle(tmp_path):
+    rows = [{"time": "2026-09-10 12:00:00+00:00", "symbol": "P-BTC-76600-110926",
+             "open": 0.11, "high": 206.0, "low": 0.11, "close": 203.0},
+            {"time": "2026-09-10 12:05:00+00:00", "symbol": "P-BTC-76600-110926",
+             "open": 203.0, "high": 216.0, "low": 193.0, "close": 215.0},
+            {"time": "2026-09-10 12:00:00+00:00", "symbol": "C-BTC-76600-110926",
+             "open": 1500.0, "high": 1510.0, "low": 1490.0, "close": 1505.0}]
+    path = tmp_path / "2026-09-11.csv.gz"
+    pd.DataFrame(rows).to_csv(path, index=False, compression="gzip")
+    chain = load_chain(path)
+    assert list(chain[("put", 76600.0)]["open"]) == [203.0]
+    assert len(chain[("call", 76600.0)]) == 1
