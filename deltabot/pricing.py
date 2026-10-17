@@ -40,6 +40,22 @@ def bs_delta(kind: str, spot: float, strike: float, t_years: float, vol: float) 
     return _norm_cdf(d1) if kind == "call" else _norm_cdf(d1) - 1.0
 
 
+def implied_vol(kind: str, price: float, spot: float, strike: float, t_years: float,
+                lo: float = 0.01, hi: float = 5.0) -> float | None:
+    """Vol that reproduces `price` (bisection). None if the price is outside the model's range."""
+    if t_years <= 0 or price <= intrinsic(kind, spot, strike) or price >= (spot if kind == "call" else strike):
+        return None
+    for _ in range(100):
+        mid = 0.5 * (lo + hi)
+        if bs_price(kind, spot, strike, t_years, mid) > price:
+            hi = mid
+        else:
+            lo = mid
+        if hi - lo < 1e-6:
+            break
+    return 0.5 * (lo + hi)
+
+
 def round_strike(price: float, step: float) -> float:
     return round(price / step) * step
 

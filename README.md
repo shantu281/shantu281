@@ -8,7 +8,8 @@ The plan is to backtest several BTC option strategies, pick the one that holds u
 |---|---|
 | REST client (`deltabot/client.py`) | Public data and signed orders written, not yet run against the live API |
 | Pricing (`deltabot/pricing.py`) | Black-Scholes price, delta and strike-by-delta; tested |
-| Backtest engine (`deltabot/backtest.py`) | Daily-expiry, model-priced; tested on synthetic data |
+| Real-price backtest (`deltabot/real_backtest.py`, `deltabot/option_data.py`) | Uses Delta's own 5-minute option candles; tested on synthetic chains, not yet run on real data |
+| Model-priced backtest (`deltabot/backtest.py`) | Black-Scholes fallback; tested on synthetic data |
 | Candidate strategies (`deltabot/strategies.py`) | Short straddle, short strangle (20Δ / 10Δ), iron condor, long straddle, trend-following option buying |
 | Paper and live runner | Not started; it comes after a strategy is chosen |
 
@@ -19,7 +20,23 @@ pip install -r requirements.txt
 python -m pytest -q
 ```
 
-## 1. Download BTC candles
+## Real-price backtest (main path)
+
+Delta keeps every expired BTC option with its 5-minute candles (checked on 17 Oct 2026: 94,564 expired BTC options; full mark-price and traded candles from Sep 2024 on, none for the oldest Dec 2023 contract).
+
+```bash
+python scripts/download_options.py --start 2026-09-01 --end 2026-09-30   # one month first
+python scripts/download_options.py --start 2024-09-01                    # full history, a few hours, resumable
+python scripts/run_real_backtest.py                                      # compare all strategies
+```
+
+- The download saves the BTC index, the list of options, and one file per daily expiry, holding every strike within ±5% of spot (`data/options/YYYY-MM-DD.csv.gz`). It uses mark prices by default; pass `--price trade` for traded prices.
+- The backtest reads the at-the-money implied vol from the real prices and picks strikes by delta. It values each leg from its own candles, checks stops against the worst high/low combination in each bar, and settles on the 30-minute average of the index.
+- Mark price is not a fill price, so the spread cost (`slippage_pct`, `min_slippage`) still matters.
+
+## Model-priced backtest (fallback)
+
+### 1. Download BTC candles
 
 ```bash
 python scripts/download_data.py --symbol BTCUSD --resolution 1h --start 2023-01-01
@@ -27,7 +44,7 @@ python scripts/download_data.py --symbol BTCUSD --resolution 1h --start 2023-01-
 
 This saves `data/BTCUSD_1h.csv`. It needs network access to `api.india.delta.exchange`.
 
-## 2. Compare strategies
+### 2. Compare strategies
 
 ```bash
 python scripts/run_backtest.py --data data/BTCUSD_1h.csv --iv-mult 0.9 1.0 1.2
