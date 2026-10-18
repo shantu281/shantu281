@@ -7,14 +7,17 @@ from deltabot.backtest import trades_frame
 from deltabot.data import load_candles
 from deltabot.pricing import strike_for_delta
 from deltabot.real_backtest import RealConfig, run_real_backtest
-from deltabot.strategies import GmmaOptionSeller, Leg, ShortStrangle
+from deltabot.strategies import GmmaOptionSeller, Leg, ShortStrangle, gmma_state
 
 class GmmaDelta(GmmaOptionSeller):
+    """GMMA H4 side (put when up, call when down), strike by delta."""
     def legs(self, ctx):
-        legs = super().legs(ctx)
-        if not legs: return legs
-        (l,) = legs
-        return [Leg(l.kind, strike_for_delta(l.kind, ctx.spot, self.params["delta"], ctx.t_years, ctx.vol, ctx.strike_step), -1)]
+        h4 = ctx.history["close"].resample("4h").last()
+        h4 = h4[h4.index + pd.Timedelta(hours=4) <= ctx.time].dropna()
+        if len(h4) < 180: return []
+        kind = {"up": "put", "down": "call"}.get(gmma_state(h4))
+        if kind is None: return []
+        return [Leg(kind, strike_for_delta(kind, ctx.spot, self.params["delta"], ctx.t_years, ctx.vol, ctx.strike_step), -1)]
 
 index = load_candles("data/BTC_index_5m.csv")
 STRATS = {f"strangle_d{int(d*100)}": (ShortStrangle, {"delta": d}) for d in (0.10, 0.15, 0.20)} | \
