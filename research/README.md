@@ -23,4 +23,5 @@ They are exploratory: quick to read, not part of the bot.
 | `download_weekly.py`, `weekly.py` | Weekly (Friday) option data and selling tests |
 | `spreads.py` | Debit spreads with the GMMA side, iron butterflies (short and long) |
 | `calendar_spread.py` | Sell daily, buy next-Friday weekly at the same strike (`SLIP_PCT` sets slippage) |
+| `ifly_boost.py` | Iron butterfly variations: cheap wings, move-based wings, GMMA-shifted centre, entry times |
 | `cmp.py` | Summary table for trade files |
