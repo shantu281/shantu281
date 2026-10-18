@@ -28,12 +28,13 @@ def main():
     p.add_argument("--strategies", nargs="*", default=None)
     p.add_argument("--lots", type=int, default=100, help="lots per leg (Delta BTC option lot = 0.001 BTC)")
     p.add_argument("--hours-before", type=float, default=24.0, help="enter this many hours before expiry")
+    p.add_argument("--min-price", type=float, default=1.0, help="skip legs priced below this (USD per BTC)")
     p.add_argument("--out", default="results")
     a = p.parse_args()
 
     data = Path(a.data)
     index = load_candles(data / "BTC_index_5m.csv")
-    cfg = RealConfig(qty_btc=a.lots * LOT_BTC, hours_before=a.hours_before)
+    cfg = RealConfig(qty_btc=a.lots * LOT_BTC, hours_before=a.hours_before, min_price=a.min_price)
     strategies = [s for s in default_strategies() if not a.strategies or s.name in a.strategies]
     out = Path(a.out)
     out.mkdir(exist_ok=True)

@@ -203,10 +203,13 @@ class IronButterfly(Strategy):
     """Sell the ATM call and put, buy a call and a put `wing` (fraction of spot) away.
 
     The backtest skips legs priced under RealConfig.min_price ($1/BTC), so it only trades when the
-    wings have value, i.e. on the livelier days. Best tested: wing 2%, entered 2 h before expiry.
+    wings have value, i.e. on the livelier days. `min_iv` skips days whose at-the-money implied vol is
+    lower. Best tested: wing 2%, entered 2 h before expiry, min_iv 0.32 (cut-off set on Sep 2024-Sep 2025).
     """
 
     def legs(self, ctx):
+        if ctx.vol < self.params.get("min_iv", 0.0):  # premiums too thin: skip the day
+            return []
         k = round_strike(ctx.spot, ctx.strike_step)
         w = self.params.get("wing", 0.02) * ctx.spot
         return [Leg("call", k, -1), Leg("put", k, -1),
@@ -237,4 +240,5 @@ def default_strategies() -> list[Strategy]:
         GmmaOptionSeller("gmma_sell_otm", params={"width": 0.5}),
         GmmaOptionSeller("gmma_put_only", params={"sides": "put"}),
         IronButterfly("iron_fly_2pct", params={"wing": 0.02}),
+        IronButterfly("iron_fly_2pct_iv32", params={"wing": 0.02, "min_iv": 0.32}),
     ]

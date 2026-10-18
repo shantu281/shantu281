@@ -43,6 +43,11 @@ All three together: +$4,597, PF 1.41, win 69.8%, max drawdown -$602, 5 of 25 los
 ## Insurance for the GMMA seller (tested 18 Oct 2026, dropped by the user)
 - P&L stops 1-5x premium and bought wings further OTM (1-3x size) all cost more than they save (`research/insurance.py`). The 3x stop was the least bad (+$1,449 vs +$2,038, smaller bad months); the user judged it not useful. Run the seller uninsured at small size.
 
+## Iron butterfly (user likes it; added 18 Oct 2026)
+- `IronButterfly("iron_fly_2pct_iv32")`: at 15:30 IST (2 h before expiry) sell the ATM call+put, buy a call and a put 2% away, hold to expiry, only when ATM implied vol >= 32%. Run: `python scripts/run_real_backtest.py --hours-before 2 --min-price 0.1 --strategies iron_fly_2pct_iv32` -> +$1,270 at 100 lots, PF 1.66, max drawdown -$324.
+- Risk rules (`deltabot/risk.py`): size lots by margin (user: ~5% per sold leg) and stop trading for the rest of the month once the month is down 10% (`MonthlyStop`). With $500 fresh each month: +$787 over 26 months, worst month -$75.
+- Variations that did not help: cheap wings every day, move-based wings, GMMA-shifted centre, other entry times, IV-based lot sizing (`research/ifly_boost.py`).
+
 ## Next steps (ask the user first)
 1. Paper-trading bot for #1 and #3 (optionally #2, and IV sizing), live Delta prices, no orders.
 2. Confirm margin per lot on Delta's order screen.
