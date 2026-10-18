@@ -48,6 +48,12 @@ All three together: +$4,597, PF 1.41, win 69.8%, max drawdown -$602, 5 of 25 los
 - Risk rules (`deltabot/risk.py`): size lots by margin (user: ~5% per sold leg) and stop trading for the rest of the month once the month is down 10% (`MonthlyStop`). With $500 fresh each month: +$787 over 26 months, worst month -$75.
 - Variations that did not help: cheap wings every day, move-based wings, GMMA-shifted centre, other entry times, IV-based lot sizing (`research/ifly_boost.py`).
 
+## Final plan (end of session, 18 Oct 2026)
+- Better mix (same worst drop as equal lots, ~1.4x profit; chosen in-sample, so expect less): S1 GMMA 09:30 : S2 lean strangle : S4 GMMA 15:30 stop = 150 : 200 : 400 lots per $10,000 (margin ~12.5% per sold leg). Drop S3 iron fly and S5 move strangle from the mix (low return on margin); keep the iron fly only as a separate small capped-risk option.
+- $10,000 full mix: ~$399/month, worst drop -$957, worst month -$297, 4/26 losing months. Profit and drop scale together with lots.
+- $1,000: half mix 8/10/20 lots -> ~$20/month, backtest worst drop ~-$48; plan for ~-$100 live.
+- Worst drop: lot size is the only reliable cap. Stops, insurance, rolling, weekly/monthly stops barely help. Small helpers: skip the day when 7-day realised vol > ~76% (halves the worst month, ~3% profit cost); half size when >3% below peak (`research/dd_cap.py`, `research/dd_regime.py`).
+
 ## Next steps (ask the user first)
 1. Paper-trading bot for #1 and #3 (optionally #2, and IV sizing), live Delta prices, no orders.
 2. Confirm margin per lot on Delta's order screen.
