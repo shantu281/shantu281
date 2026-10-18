@@ -102,3 +102,15 @@ def test_target_needs_a_real_close_not_mixed_intrabar_extremes(setup, tmp_path):
     spiked = run_real_backtest(index, tmp_path, strat, zero_cost())
     assert [(t.exit_reason, t.exit_time, t.gross_pnl) for t in base] == \
            [(t.exit_reason, t.exit_time, t.gross_pnl) for t in spiked]
+
+
+def test_iron_butterfly_loss_is_capped_by_the_wings(setup):
+    from deltabot.strategies import IronButterfly
+    index, d = setup
+    trades = run_real_backtest(index, d, IronButterfly("ifly", params={"wing": 0.02}), zero_cost())
+    assert trades
+    for t in trades:
+        shorts = [l for l in t.legs if l.side < 0]; longs = [l for l in t.legs if l.side > 0]
+        assert len(shorts) == 2 and len(longs) == 2 and shorts[0].strike == shorts[1].strike
+        width = max(abs(l.strike - shorts[0].strike) for l in longs)
+        assert t.gross_pnl >= -(width + t.entry_premium) * 0.1 - 1e-6  # credit trade: loss <= width - credit

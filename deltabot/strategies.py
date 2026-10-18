@@ -199,6 +199,20 @@ class GmmaOptionSeller(Strategy):
             return [Leg("call", k, -1), Leg("put", k, -1)]
         return []
 
+class IronButterfly(Strategy):
+    """Sell the ATM call and put, buy a call and a put `wing` (fraction of spot) away.
+
+    The backtest skips legs priced under RealConfig.min_price ($1/BTC), so it only trades when the
+    wings have value, i.e. on the livelier days. Best tested: wing 2%, entered 2 h before expiry.
+    """
+
+    def legs(self, ctx):
+        k = round_strike(ctx.spot, ctx.strike_step)
+        w = self.params.get("wing", 0.02) * ctx.spot
+        return [Leg("call", k, -1), Leg("put", k, -1),
+                Leg("call", round_strike(ctx.spot + w, ctx.strike_step), +1),
+                Leg("put", round_strike(ctx.spot - w, ctx.strike_step), +1)]
+
 
 def default_strategies() -> list[Strategy]:
     """The starting set to compare. Tune or add variants here."""
@@ -222,4 +236,5 @@ def default_strategies() -> list[Strategy]:
         GmmaOptionSeller("gmma_sell_straddle", params={"none": "straddle"}),
         GmmaOptionSeller("gmma_sell_otm", params={"width": 0.5}),
         GmmaOptionSeller("gmma_put_only", params={"sides": "put"}),
+        IronButterfly("iron_fly_2pct", params={"wing": 0.02}),
     ]
