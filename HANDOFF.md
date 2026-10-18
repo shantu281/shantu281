@@ -35,6 +35,11 @@ All three together: +$4,597, PF 1.41, win 69.8%, max drawdown -$602, 5 of 25 los
 - Strike by delta: no better than the move-based strike. Delta-based exits: hurt.
 - Lead: size lots by implied vol (lots x IV / median IV of last 60 trades, clipped 0.5-2x). Better in both years for every strategy; drawdowns usually 15-30% bigger, except #3 where everything improved.
 
+## Option buying (parked by the user, 18 Oct 2026: "buying is out for now")
+- Hero-zero at fixed times (ATM to 1.5% OTM, 1-3 h before expiry): loses in every version, even before costs (`research/hero.py`).
+- Triggered buying (`research/hero_signal.py`, `research/hero_combo.py`): only a 5-30 min momentum burst in the GMMA H4 trend direction works; against the trend it always loses. Best: 0.5% OTM, take profit 5x: +$1,076 over 2 years at 100 lots, but year 2 was +$3; 3x targets and premium caps made it worse.
+- Combined with the 3 sellers it adds ~$1,000 (all year 1), slightly bigger drawdown, and no protection on the sellers' worst days. Not used.
+
 ## Next steps (ask the user first)
 1. Paper-trading bot for #1 and #3 (optionally #2, and IV sizing), live Delta prices, no orders.
 2. Confirm margin per lot on Delta's order screen.
