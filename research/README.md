@@ -21,4 +21,6 @@ They are exploratory: quick to read, not part of the bot.
 | `insurance.py` | GMMA seller insurance: P&L stops and bought wings (1-3x size) |
 | `rolling.py` | Rolling the GMMA seller's short option instead of stopping out |
 | `download_weekly.py`, `weekly.py` | Weekly (Friday) option data and selling tests |
+| `spreads.py` | Debit spreads with the GMMA side, iron butterflies (short and long) |
+| `calendar_spread.py` | Sell daily, buy next-Friday weekly at the same strike (`SLIP_PCT` sets slippage) |
 | `cmp.py` | Summary table for trade files |
