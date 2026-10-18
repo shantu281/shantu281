@@ -52,6 +52,7 @@ All three together: +$4,597, PF 1.41, win 69.8%, max drawdown -$602, 5 of 25 los
 - Better mix (same worst drop as equal lots, ~1.4x profit; chosen in-sample, so expect less): S1 GMMA 09:30 : S2 lean strangle : S4 GMMA 15:30 stop = 150 : 200 : 400 lots per $10,000 (margin ~12.5% per sold leg). Drop S3 iron fly and S5 move strangle from the mix (low return on margin); keep the iron fly only as a separate small capped-risk option.
 - $10,000 full mix: ~$399/month, worst drop -$957, worst month -$297, 4/26 losing months. Profit and drop scale together with lots.
 - $1,000: half mix 8/10/20 lots -> ~$20/month, backtest worst drop ~-$48; plan for ~-$100 live.
+- Big losing days: S1 (8 h, no stop) caused 56% of the 10 worst days' losses. Final choice (user agreed): give S1 a 3x premium stop inside the mix (`GmmaOptionSeller(stop_mult=3.0, params={"width": 0.5})`, 8 h). $1,000 half mix: +$482 vs +$529 over 26 months (-9%), worst day -$15.8 vs -$23.8, worst month -$7 vs -$17, worst drop -$40 vs -$49.
 - Worst drop: lot size is the only reliable cap. Stops, insurance, rolling, weekly/monthly stops barely help. Small helpers: skip the day when 7-day realised vol > ~76% (halves the worst month, ~3% profit cost); half size when >3% below peak (`research/dd_cap.py`, `research/dd_regime.py`).
 
 ## Next steps (ask the user first)
