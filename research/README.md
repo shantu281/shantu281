@@ -15,4 +15,5 @@ They are exploratory: quick to read, not part of the bot.
 | `feat.py`, `filt.py` | Greeks at entry; filters by thirds, cut-offs set on year 1 |
 | `greek_grid.py` | Strike chosen by delta |
 | `dstop.py` | Exit when the short leg's delta passes a limit |
+| `hero.py` | Hero-zero: buy ATM to 1.5% OTM options 1-3 h before expiry |
 | `cmp.py` | Summary table for trade files |
