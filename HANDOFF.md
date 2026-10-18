@@ -40,6 +40,9 @@ All three together: +$4,597, PF 1.41, win 69.8%, max drawdown -$602, 5 of 25 los
 - Triggered buying (`research/hero_signal.py`, `research/hero_combo.py`): only a 5-30 min momentum burst in the GMMA H4 trend direction works; against the trend it always loses. Best: 0.5% OTM, take profit 5x: +$1,076 over 2 years at 100 lots, but year 2 was +$3; 3x targets and premium caps made it worse.
 - Combined with the 3 sellers it adds ~$1,000 (all year 1), slightly bigger drawdown, and no protection on the sellers' worst days. Not used.
 
+## Insurance for the GMMA seller (tested 18 Oct 2026, dropped by the user)
+- P&L stops 1-5x premium and bought wings further OTM (1-3x size) all cost more than they save (`research/insurance.py`). The 3x stop was the least bad (+$1,449 vs +$2,038, smaller bad months); the user judged it not useful. Run the seller uninsured at small size.
+
 ## Next steps (ask the user first)
 1. Paper-trading bot for #1 and #3 (optionally #2, and IV sizing), live Delta prices, no orders.
 2. Confirm margin per lot on Delta's order screen.
