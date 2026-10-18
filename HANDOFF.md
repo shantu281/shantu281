@@ -1,49 +1,45 @@
-# Handoff: Delta Exchange India BTC options bot
+# Handoff: Delta Exchange India BTC options bot (status 18 Oct 2026)
 
-You are continuing a project started in a cloud session that could not reach Delta Exchange. **You run on the user's Windows PC, which can.** Do every step below yourself, in order, and report the results in plain, simple language. The user is a trader, not a programmer, so keep explanations short and avoid jargon.
+Paste or upload this file at the start of a new session. The user is a trader, not a
+programmer: short plain answers, month-wise tables, say clearly what is checked and what
+is a guess, ask before big direction changes, don't start new research unprompted.
 
-## Goal
-Build a bot that trades **BTC options on Delta Exchange India**. Backtest first and pick the strategy that holds up, then paper trade, then go live. Right now we are at the **backtest** stage.
+## Where things are
+- Repo `shantu281/shantu281`, branch `claude/hopeful-goodall-9poj0b`. Tests: `python -m pytest -q` (21 pass).
+- Data is not in git. Rebuild: `python scripts/download_options.py --start 2024-09-01` (~1 hour; needs network access to `api.india.delta.exchange`), then prepend BTC index 5m candles from 2024-05-01 (the GMMA EMAs need warm-up; see `research/README.md`).
+- Backtest: `python scripts/run_real_backtest.py --hours-before 8 --strategies gmma_sell_otm --lots 100`.
+- Research scripts: `research/`.
 
-## What has been established (checked by the user on 17 Oct 2026)
-- Delta keeps **expired option contracts**, with candles per symbol, e.g. `C-BTC-57000-270924` (traded price) and `MARK:C-BTC-57000-270924` (mark price).
-- There are 94,564 expired BTC options. The oldest is Dec 2023 (0 candles). **From Sep 2024 onward, data is full**: 577 of 577 five-minute mark candles over 48 hours, and 541–572 traded candles.
-- So we backtest on **real Delta option prices at 5-minute resolution, from Sep 2024 to now**.
-- No API key is needed for data. **Never ask the user to paste an API secret into chat.**
+## What was established (real Delta mark prices, 5-min, Sep 2024 to Oct 2026)
+- Checked: 1 BTC option lot = 0.001 BTC. Fees 0.010% of notional capped at 3.5% of premium, +18% GST, no fee on OTM expiry (user, from Delta's fee page).
+- Guess: spread/slippage max(2% of premium, $5 per BTC) per leg trade. A live order-book snapshot (Sat 02:10 IST, many crossed quotes) showed $2-3 spreads on cheap OTM options.
+- Selling the day before expiry loses in every version. Selling on expiry day, 2-8 h before 17:30 IST, can work.
+- Bugs fixed: profit targets used mixed intrabar extremes (now bar close); newly listed options' first candle opens at a placeholder ($0.10) and is dropped.
 
-## Code (already written and tested on synthetic data)
-- GitHub repo `shantu281/shantu281`, branch **`claude/code-session-jlw1o5`**. Read `README.md` first.
-- `deltabot/client.py`: Delta India REST client.
-- `deltabot/option_data.py`: downloads expired option chains (one gzipped CSV per daily expiry).
-- `deltabot/real_backtest.py`: backtest on real option prices.
-- `deltabot/backtest.py`: model-priced fallback.
-- `deltabot/strategies.py`: 7 candidates (short straddle, with and without exits; short strangle at 20 and 10 delta; iron condor; long straddle; trend-following option buying).
-- `scripts/download_options.py`, `scripts/run_real_backtest.py`
-- Tests: `python -m pytest -q` (16 pass). The code has **never run against the real API**, so expect to fix small things such as field names, the index symbol, or rate limits.
+## Best 3 (100 lots per leg, real fees, $5 spread, 2 years)
+| # | Strategy | Net | Worst drop | Notes |
+|---|---|---|---|---|
+| 1 | GMMA H4 seller, 09:30 IST, strike 0.5x recent move OTM, hold to expiry (`gmma_sell_otm`, 8 h) | +$2,038 | -$473 | Works 2-8 h before expiry, both years positive, beat 98% of random-side controls |
+| 2 | Leaning strangle, 15:30 IST, 1x stop (`research/gfilter.py` mode "skew") | +$1,912 | -$316 | Only works within ~4 h of expiry |
+| 3 | GMMA H4 seller, 15:30 IST, 1x stop | +$874 | -$124 | Safest; worst day -$27 |
+GMMA: EMAs 3,5,8,10,12,15 vs 30,35,40,45,50,60 on completed H4 closes (UTC-aligned bars). Ribbon up = sell put, down = sell call, tangled = no trade.
 
-## Steps to do now
-1. **Get the code.** If this folder isn't already the repo:
-   `git clone https://github.com/shantu281/shantu281.git delta-bot`, then `cd delta-bot`, then `git checkout claude/code-session-jlw1o5`.
-   If git is missing, install it with `winget install --id Git.Git -e`.
-2. Run `pip install -r requirements.txt`, then `python -m pytest -q`.
-3. **Test one month:** `python scripts/download_options.py --start 2026-09-01 --end 2026-09-30`
-   - If the `.DEXBTUSD` index fails, the script falls back to `BTCUSD`. Check which one was used.
-   - Check that the files in `data/options/` contain sensible strikes and prices. Open one and look at it.
-   - Fix any API or format errors in the code. Commit each fix with a clear message.
-4. Run `python scripts/run_real_backtest.py` and show the user the strategy table, in simple words.
-5. **Sanity checks before trusting any result:**
-   - Is the at-the-money implied vol plausible (usually 30–80% for BTC)?
-   - Do entry premiums look like real Delta prices?
-   - Are trades skipped on many days? Explain why.
-6. If the month looks right, start the **full download**: `python scripts/download_options.py --start 2024-09-01`. It takes a few hours and can be resumed. Run it in the background, then rerun the backtest on the full history and give a month-by-month table.
-7. Commit and push code changes to `claude/code-session-jlw1o5`. Don't commit `data/` or `results/`; they're gitignored.
+All three together: +$4,597, PF 1.41, win 69.8%, max drawdown -$602, 5 of 25 losing months.
 
-## Open items to raise with the user
-- **Fees are assumed, not checked:** 0.03% of notional per leg, capped at 3.5% of the premium, plus 18% GST, and slippage of 2% of the premium (minimum $5 per BTC). Ask the user to confirm them from their Delta fee page, or look them up, and update `BacktestConfig` in `deltabot/backtest.py`.
-- **Mark price is not a fill price.** Later, compare mark prices with traded prices (`--price trade`) to estimate the real spread.
-- The user also uses AlgoTest (algotest.in), which backtests Delta BTC options. Its results can be used as a cross-check.
+## $1,000 account
+- Isolated/cross margin for a naked short option is 10-15% of BTC value per lot (user's source cites a video; check on Delta's order screen). Fully used: $1,000 -> $2,366-$3,600 over 2 years, max drawdown 13-20%.
+- Portfolio margin is only ~1% per lot (computed from Delta's guide); fully used it wiped the account out on 5 Mar 2025. Use isolated mode, or cap size in the bot.
 
-## Working rules the user asked for
-- **Say clearly what is checked and what is a guess.** An earlier unchecked "no real data exists" claim sent the project the wrong way.
-- Keep answers short and simple. Ask before big direction changes.
-- Don't edit trading files or settings the user didn't ask about.
+## Greeks research
+- Filters (14 Greek/vol measures): none helped out of sample.
+- Strike by delta: no better than the move-based strike. Delta-based exits: hurt.
+- Lead: size lots by implied vol (lots x IV / median IV of last 60 trades, clipped 0.5-2x). Better in both years for every strategy; drawdowns usually 15-30% bigger, except #3 where everything improved.
+
+## Next steps (ask the user first)
+1. Paper-trading bot for #1 and #3 (optionally #2, and IV sizing), live Delta prices, no orders.
+2. Confirm margin per lot on Delta's order screen.
+3. Compare paper fills with mark prices to measure the real spread.
+4. Only then go live small (10-20 lots), isolated margin.
+
+## Related
+- The user's "bot 2" sessions (on their PC, MT5) hold a gold strategy (GMMA + Inside-day + Turtle soup) and a Bitcoin GMMA H4 futures lead on Vantage; those MT5 tests can't run from a cloud session.
