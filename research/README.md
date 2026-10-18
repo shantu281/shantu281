@@ -24,4 +24,5 @@ They are exploratory: quick to read, not part of the bot.
 | `spreads.py` | Debit spreads with the GMMA side, iron butterflies (short and long) |
 | `calendar_spread.py` | Sell daily, buy next-Friday weekly at the same strike (`SLIP_PCT` sets slippage) |
 | `ifly_boost.py` | Iron butterfly variations: cheap wings, move-based wings, GMMA-shifted centre, entry times |
+| `hedge_margin.py` | Far OTM wings on the GMMA seller: profit cost vs portfolio-margin saving |
 | `cmp.py` | Summary table for trade files |
