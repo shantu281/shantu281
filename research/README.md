@@ -26,4 +26,5 @@ They are exploratory: quick to read, not part of the bot.
 | `ifly_boost.py` | Iron butterfly variations: cheap wings, move-based wings, GMMA-shifted centre, entry times |
 | `hedge_margin.py` | Far OTM wings on the GMMA seller: profit cost vs portfolio-margin saving |
 | `dd_cap.py` | Drawdown-capping rules on the combined sellers (monthly/weekly stops, throttle, pause) |
+| `dd_regime.py` | Drawdown ideas: skip 15:30 entries after a big morning move; half size after a big-move day |
 | `cmp.py` | Summary table for trade files |
