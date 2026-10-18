@@ -27,4 +27,5 @@ They are exploratory: quick to read, not part of the bot.
 | `hedge_margin.py` | Far OTM wings on the GMMA seller: profit cost vs portfolio-margin saving |
 | `dd_cap.py` | Drawdown-capping rules on the combined sellers (monthly/weekly stops, throttle, pause) |
 | `dd_regime.py` | Drawdown ideas: skip 15:30 entries after a big morning move; half size after a big-move day |
+| `download_eth.py`, `eth_best.py` | ETH index + daily option chains, and our best sellers run on ETH |
 | `cmp.py` | Summary table for trade files |
