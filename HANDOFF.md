@@ -55,6 +55,12 @@ All three together: +$4,597, PF 1.41, win 69.8%, max drawdown -$602, 5 of 25 los
 - Big losing days: S1 (8 h, no stop) caused 56% of the 10 worst days' losses. Final choice (user agreed): give S1 a 3x premium stop inside the mix (`GmmaOptionSeller(stop_mult=3.0, params={"width": 0.5})`, 8 h). $1,000 half mix: +$482 vs +$529 over 26 months (-9%), worst day -$15.8 vs -$23.8, worst month -$7 vs -$17, worst drop -$40 vs -$49.
 - Worst drop: lot size is the only reliable cap. Stops, insurance, rolling, weekly/monthly stops barely help. Small helpers: skip the day when 7-day realised vol > ~76% (halves the worst month, ~3% profit cost); half size when >3% below peak (`research/dd_cap.py`, `research/dd_regime.py`).
 
+## ETH (tested 18 Oct 2026; data: `research/download_eth.py`, tests: `research/eth_best.py`)
+- ETH lot = 0.01 ETH. Same rules, costs scaled (min spread $0.15/ETH). 1 ETH per leg, 2 years:
+  S1 GMMA 09:30 no stop +$895 (both years +, PF 1.38, DD -$246); with 3x stop only +$216; S2 +$279; S4 +$131; iron fly -$118.
+- S1 works 2-8 h before expiry, loses at 12 h+ (same as BTC). But the GMMA side is not proven on ETH: opposite side also made +$239 and GMMA beat only ~79% of random-side runs.
+- Half BTC S1 + half ETH S1 (same margin): +$2,405 vs +$2,038 BTC alone, DD -$528 vs -$473, worst month -$301 vs -$346 (corr 0.45). Optional small diversifier; not part of the main plan.
+
 ## Next steps (ask the user first)
 1. Paper-trading bot for #1 and #3 (optionally #2, and IV sizing), live Delta prices, no orders.
 2. Confirm margin per lot on Delta's order screen.
