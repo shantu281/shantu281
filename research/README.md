@@ -18,4 +18,5 @@ They are exploratory: quick to read, not part of the bot.
 | `hero.py` | Hero-zero: buy ATM to 1.5% OTM options 1-3 h before expiry |
 | `hero_signal.py` | Option buying on triggers (breakout, squeeze, GMMA flip, momentum burst); `MOM=1` runs the momentum grid |
 | `hero_combo.py` | Momentum burst with trend: strike, take-profit and premium-cap combinations |
+| `insurance.py` | GMMA seller insurance: P&L stops and bought wings (1-3x size) |
 | `cmp.py` | Summary table for trade files |
