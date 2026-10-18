@@ -25,4 +25,5 @@ They are exploratory: quick to read, not part of the bot.
 | `calendar_spread.py` | Sell daily, buy next-Friday weekly at the same strike (`SLIP_PCT` sets slippage) |
 | `ifly_boost.py` | Iron butterfly variations: cheap wings, move-based wings, GMMA-shifted centre, entry times |
 | `hedge_margin.py` | Far OTM wings on the GMMA seller: profit cost vs portfolio-margin saving |
+| `dd_cap.py` | Drawdown-capping rules on the combined sellers (monthly/weekly stops, throttle, pause) |
 | `cmp.py` | Summary table for trade files |
