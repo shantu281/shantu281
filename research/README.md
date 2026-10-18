@@ -17,4 +17,5 @@ They are exploratory: quick to read, not part of the bot.
 | `dstop.py` | Exit when the short leg's delta passes a limit |
 | `hero.py` | Hero-zero: buy ATM to 1.5% OTM options 1-3 h before expiry |
 | `hero_signal.py` | Option buying on triggers (breakout, squeeze, GMMA flip, momentum burst); `MOM=1` runs the momentum grid |
+| `hero_combo.py` | Momentum burst with trend: strike, take-profit and premium-cap combinations |
 | `cmp.py` | Summary table for trade files |
